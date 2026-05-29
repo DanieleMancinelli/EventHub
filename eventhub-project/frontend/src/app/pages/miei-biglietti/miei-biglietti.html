@@ -1,0 +1,22 @@
+<div style="padding: 20px;">
+  <h1>I miei Biglietti</h1>
+  
+  @if (biglietti().length > 0) {
+    <div style="display: grid; gap: 15px;">
+      @for (b of biglietti(); track b.codice_biglietto) {
+        <div style="border: 2px dashed #aaa; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3>{{ b.titolo }}</h3>
+            <p>{{ b.data_evento | date:'short' }} - {{ b.luogo }}</p>
+          </div>
+          <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+            <p>Codice Biglietto:</p>
+            <strong style="font-size: 1.2rem; color: #d32f2f;">{{ b.codice_biglietto }}</strong>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p>Non hai ancora acquistato nessun biglietto.</p>
+  }
+</div>

@@ -1,0 +1,25 @@
+<div style="padding: 20px;">
+  <h2>Filtra Eventi</h2>
+  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <input [(ngModel)]="filtri.citta" placeholder="Città">
+    <select [(ngModel)]="filtri.categoria">
+      <option value="">Tutte le categorie</option>
+      <option value="concerto">Concerto</option>
+      <option value="workshop">Workshop</option>
+      <option value="libro">Libro</option>
+    </select>
+    <button (click)="carica()">Cerca</button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+    @for (e of eventi(); track e.id) {
+      <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+        <img [src]="apiUrl + '/eventi/' + e.id + '/immagine'" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;">
+        <h3>{{ e.titolo }}</h3>
+        <p>{{ e.luogo }} - {{ e.data_evento | date:'short' }}</p>
+        <p><strong>{{ e.prezzo }}€</strong></p>
+        <button [routerLink]="['/dettaglio-evento', e.id]">Dettagli</button>
+      </div>
+    }
+  </div>
+</div>

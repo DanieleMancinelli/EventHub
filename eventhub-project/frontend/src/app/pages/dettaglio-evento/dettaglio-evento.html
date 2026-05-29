@@ -1,0 +1,29 @@
+<div style="padding: 20px; max-width: 800px; margin: auto;" @if (evento()) { >
+  <img [src]="apiUrl + '/eventi/' + evento().id + '/immagine'" style="width: 100%; border-radius: 8px;">
+  <h1>{{ evento().titolo }}</h1>
+  <p style="font-size: 1.2rem;">{{ evento().descrizione }}</p>
+  
+  <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
+    <p>📍 <strong>Luogo:</strong> {{ evento().luogo }}</p>
+    <p>📅 <strong>Data:</strong> {{ evento().data_evento | date:'medium' }}</p>
+    <p>🎫 <strong>Posti disponibili:</strong> {{ evento().posti_disponibili }}</p>
+    <p>💰 <strong>Prezzo:</strong> {{ evento().prezzo }}€</p>
+  </div>
+
+  <div style="margin-top: 20px;">
+    @if (auth.isLoggedIn()) {
+      <button (click)="prenota()" [disabled]="evento().posti_disponibili <= 0" 
+              style="padding: 10px 20px; font-size: 1rem; cursor: pointer;">
+        Prenota Biglietto
+      </button>
+    } @else {
+      <p>Devi fare il <a (click)="auth.login()" style="color: blue; cursor: pointer;">Login</a> per prenotare.</p>
+    }
+  </div>
+
+  @if (messaggio()) {
+    <p style="margin-top: 20px; padding: 10px; background: #e7f3ef; color: #2d5a4c; border-radius: 4px;">
+      {{ messaggio() }}
+    </p>
+  }
+</div>
