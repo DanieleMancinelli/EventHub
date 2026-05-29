@@ -10,16 +10,13 @@ export class DataService {
   private auth = inject(AuthService);
   private apiUrl = environment.apiUrl;
 
-  // Funzione per creare gli header con il Token JWT
   private getHeaders() {
     return new HttpHeaders({
       'Authorization': `Bearer ${this.auth.getToken()}`
     });
   }
 
-  // --- EVENTI ---
   getEventi(filtri: any = {}): Observable<any> {
-    // Trasformiamo l'oggetto filtri in parametri URL (es: ?citta=Roma)
     return this.http.get(`${this.apiUrl}/eventi`, { params: filtri });
   }
 
@@ -27,23 +24,29 @@ export class DataService {
     return this.http.get(`${this.apiUrl}/eventi/${id}`);
   }
 
-  // --- ORGANIZZATORE (Richiede Token) ---
+  // --- ORGANIZZATORE ---
+  getMieiEventi(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/organizzatore/eventi`, { headers: this.getHeaders() });
+  }
+
   creaEvento(formData: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/organizzatore/eventi`, formData, {
-      headers: this.getHeaders()
+    return this.http.post(`${this.apiUrl}/organizzatore/eventi`, formData, { headers: this.getHeaders() });
+  }
+
+  esportaIscritti(eventoId: number) {
+    // Per scaricare un file servono degli header particolari
+    return this.http.get(`${this.apiUrl}/organizzatore/eventi/${eventoId}/csv`, {
+      headers: this.getHeaders(),
+      responseType: 'blob' // Importante per i file
     });
   }
 
-  // --- UTENTE (Richiede Token) ---
+  // --- UTENTE ---
   iscriviti(eventoId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/eventi/${eventoId}/iscrizione`, {}, {
-      headers: this.getHeaders()
-    });
+    return this.http.post(`${this.apiUrl}/eventi/${eventoId}/iscrizione`, {}, { headers: this.getHeaders() });
   }
 
   getMieiBiglietti(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/utente/biglietti`, {
-      headers: this.getHeaders()
-    });
+    return this.http.get(`${this.apiUrl}/utente/biglietti`, { headers: this.getHeaders() });
   }
 }

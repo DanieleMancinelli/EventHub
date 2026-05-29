@@ -22,13 +22,24 @@ export class DettaglioEventoComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
-    this.dataService.getDettaglioEvento(id).subscribe(res => this.evento.set(res));
+    console.log("ID recuperato dalla rotta:", id);
+    
+    this.dataService.getDettaglioEvento(id).subscribe({
+      next: (res) => {
+        console.log("Dati evento ricevuti:", res);
+        this.evento.set(res);
+      },
+      error: (err) => {
+        console.error("Errore API dettagli:", err);
+        this.messaggio.set("Errore nel caricamento dell'evento.");
+      }
+    });
   }
 
   prenota() {
     this.dataService.iscriviti(this.evento().id).subscribe({
       next: (res) => this.messaggio.set("Iscrizione riuscita! Codice: " + res.codice),
-      error: () => this.messaggio.set("Errore: posti esauriti o già iscritto.")
+      error: () => this.messaggio.set("Posti esauriti o sei già iscritto.")
     });
   }
 }

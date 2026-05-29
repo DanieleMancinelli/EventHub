@@ -1,19 +1,14 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './pages/home/home';
+import { DettaglioEventoComponent } from './pages/dettaglio-evento/dettaglio-evento';
+import { MieiBigliettiComponent } from './pages/miei-biglietti/miei-biglietti';
+import { OrganizzatoreDashboardComponent } from './pages/organizzatore-dashboard/organizzatore-dashboard';
 import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent) 
-  },
-  { 
-    path: 'dettaglio-evento/:id', 
-    loadComponent: () => import('./pages/dettaglio-evento/dettaglio-evento').then(m => m.DettaglioEventoComponent) 
-  },
-  { 
-    path: 'miei-biglietti', 
-    loadComponent: () => import('./pages/miei-biglietti/miei-biglietti').then(m => m.MieiBigliettiComponent),
-    canActivate: [authGuard]
-  },
+  { path: '', component: HomeComponent },
+  { path: 'dettaglio-evento/:id', component: DettaglioEventoComponent },
+  { path: 'miei-biglietti', component: MieiBigliettiComponent, canActivate: [authGuard] },
+  { path: 'organizzatore', component: OrganizzatoreDashboardComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

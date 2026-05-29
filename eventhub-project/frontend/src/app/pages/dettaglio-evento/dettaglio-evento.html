@@ -1,29 +1,67 @@
-<div style="padding: 20px; max-width: 800px; margin: auto;" @if (evento()) { >
-  <img [src]="apiUrl + '/eventi/' + evento().id + '/immagine'" style="width: 100%; border-radius: 8px;">
-  <h1>{{ evento().titolo }}</h1>
-  <p style="font-size: 1.2rem;">{{ evento().descrizione }}</p>
+<div style="padding: 20px; max-width: 650px; margin: auto;">
   
-  <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
-    <p>📍 <strong>Luogo:</strong> {{ evento().luogo }}</p>
-    <p>📅 <strong>Data:</strong> {{ evento().data_evento | date:'medium' }}</p>
-    <p>🎫 <strong>Posti disponibili:</strong> {{ evento().posti_disponibili }}</p>
-    <p>💰 <strong>Prezzo:</strong> {{ evento().prezzo }}€</p>
-  </div>
+  @if (evento()) {
+    <button routerLink="/" style="margin-bottom: 15px; background: #64748b; padding: 8px 15px; font-size: 0.8rem;">
+      ← Torna alla lista
+    </button>
+    
+    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+      
+      <!-- IMMAGINE DETTAGLIO: Intera e non tagliata -->
+      <div style="background: #f1f5f9; text-align: center;">
+        <img [src]="apiUrl + '/eventi/' + evento().id + '/immagine'" 
+             style="max-width: 100%; height: auto; max-height: 350px; object-fit: contain; display: block; margin: auto;">
+      </div>
+      
+      <div style="padding: 25px;">
+        <span style="font-size: 0.7rem; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-weight: bold; text-transform: uppercase;">
+          {{ evento().categoria }}
+        </span>
+        
+        <h1 style="margin-top: 10px; font-size: 2rem; color: #1e293b;">{{ evento().titolo }}</h1>
+        <p style="font-size: 1rem; line-height: 1.5; color: #475569; margin-bottom: 20px;">{{ evento().descrizione }}</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Luogo</p>
+            <p style="margin: 3px 0 0 0;">📍 {{ evento().luogo }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Data e Ora</p>
+            <p style="margin: 3px 0 0 0;">📅 {{ evento().data_evento | date:'medium' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Disponibilità</p>
+            <p style="margin: 3px 0 0 0;">🎟️ {{ evento().posti_disponibili }} rimasti</p>
+          </div>
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Prezzo</p>
+            <p style="margin: 3px 0 0 0; font-weight: 800; font-size: 1.1rem; color: #1e293b;">{{ evento().prezzo }}€</p>
+          </div>
+        </div>
 
-  <div style="margin-top: 20px;">
-    @if (auth.isLoggedIn()) {
-      <button (click)="prenota()" [disabled]="evento().posti_disponibili <= 0" 
-              style="padding: 10px 20px; font-size: 1rem; cursor: pointer;">
-        Prenota Biglietto
-      </button>
-    } @else {
-      <p>Devi fare il <a (click)="auth.login()" style="color: blue; cursor: pointer;">Login</a> per prenotare.</p>
-    }
-  </div>
+        <div style="margin-top: 25px;">
+          @if (auth.isLoggedIn()) {
+            <button (click)="prenota()" [disabled]="evento().posti_disponibili <= 0" style="width: 100%; padding: 12px; font-size: 1rem;">
+              🚀 Prenota Biglietto
+            </button>
+          } @else {
+            <div style="text-align: center; padding: 15px; background: #fff7ed; border-radius: 8px;">
+              <p style="margin: 0; font-size: 0.9rem;">Vuoi partecipare? <a (click)="auth.login()" style="font-weight: bold; color: #c2410c; cursor: pointer;">Accedi</a> per prenotare.</p>
+            </div>
+          }
+        </div>
 
-  @if (messaggio()) {
-    <p style="margin-top: 20px; padding: 10px; background: #e7f3ef; color: #2d5a4c; border-radius: 4px;">
-      {{ messaggio() }}
-    </p>
+        @if (messaggio()) {
+          <div style="margin-top: 15px; padding: 12px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; color: #065f46; font-size: 0.9rem; text-align: center;">
+            {{ messaggio() }}
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div style="text-align: center; padding: 100px;">
+      <p style="color: #64748b;">Caricamento...</p>
+    </div>
   }
 </div>

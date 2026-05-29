@@ -1,1 +1,94 @@
-<p>organizzatore-dashboard works!</p>
+<div class="dashboard-container">
+  
+  <!-- Colonna Sinistra: Form Creazione -->
+  <aside>
+    <div class="form-card">
+      <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 1.5rem; color: #1e293b;">Nuovo Evento</h2>
+      
+      <div class="form-group">
+        <label>Titolo dell'evento</label>
+        <input [(ngModel)]="nuovoEvento.titolo" placeholder="Inserisci il titolo">
+      </div>
+
+      <div class="form-group">
+        <label>Descrizione</label>
+        <textarea [(ngModel)]="nuovoEvento.descrizione" placeholder="Racconta l'evento..." rows="4" style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: inherit;"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Data e Ora</label>
+        <input type="datetime-local" [(ngModel)]="nuovoEvento.data">
+      </div>
+
+      <div class="form-group">
+        <label>Luogo / Città</label>
+        <input [(ngModel)]="nuovoEvento.luogo" placeholder="es: Milano, Fabrique">
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <select [(ngModel)]="nuovoEvento.categoria">
+          <option value="concerto">🎸 Concerto</option>
+          <option value="workshop">🧠 Workshop</option>
+          <option value="libro">📖 Presentazione Libro</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prezzo (€)</label>
+          <input type="number" [(ngModel)]="nuovoEvento.prezzo">
+        </div>
+        <div class="form-group">
+          <label>Posti Totali</label>
+          <input type="number" [(ngModel)]="nuovoEvento.posti">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 10px;">
+        <label>Locandina (Upload Immagine)</label>
+        <div style="border: 2px dashed #cbd5e1; padding: 15px; border-radius: 8px; text-align: center; background: #f8fafc;">
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" style="border: none; padding: 0; width: 100%;">
+          <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #64748b;">Carica un file JPG o PNG</p>
+        </div>
+      </div>
+
+      <button (click)="salva()" style="width: 100%; padding: 14px; margin-top: 15px; background: #10b981; font-size: 1rem;">
+        🚀 Pubblica Evento
+      </button>
+    </div>
+  </aside>
+
+  <!-- Colonna Destra: Lista Eventi -->
+  <section>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">I tuoi eventi pubblicati</h2>
+      <span class="status-badge">{{ mieiEventi().length }} Eventi</span>
+    </div>
+
+    <div class="event-list">
+      @for (e of mieiEventi(); track e.id) {
+        <div class="event-item">
+          <div>
+            <h3 style="margin: 0; color: #1e293b;">{{ e.titolo }}</h3>
+            <div style="display: flex; gap: 15px; margin-top: 5px; color: #64748b; font-size: 0.85rem;">
+              <span>📅 {{ e.data_evento | date:'short' }}</span>
+              <span>📍 {{ e.luogo }}</span>
+              <span>🎟️ {{ e.posti_disponibili }} rimasti</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button (click)="scaricaCSV(e.id)" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 0.8rem;">
+              📊 Lista Iscritti (CSV)
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div style="text-align: center; padding: 60px; background: white; border-radius: 12px; border: 2px dashed #e2e8f0;">
+          <p style="color: #64748b;">Non hai ancora creato nessun evento.<br>Usa il modulo a sinistra per iniziare!</p>
+        </div>
+      }
+    </div>
+  </section>
+
+</div>
