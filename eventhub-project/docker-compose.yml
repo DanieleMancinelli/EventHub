@@ -11,5 +11,10 @@ services:
       KC_PROXY_HEADERS: "xforwarded"
     ports:
       - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     command:
       - start-dev
+
+volumes:
+  keycloak_data:

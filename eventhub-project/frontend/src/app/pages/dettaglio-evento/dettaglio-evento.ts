@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../core/auth.service';
 import { environment } from '../../../environments/environment';
@@ -8,7 +9,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dettaglio-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './dettaglio-evento.html'
 })
 export class DettaglioEventoComponent implements OnInit {
@@ -18,28 +19,45 @@ export class DettaglioEventoComponent implements OnInit {
   apiUrl = environment.apiUrl;
 
   evento = signal<any>(null);
+  recensioni = signal<any[]>([]);
   messaggio = signal('');
+  
+  // Per la nuova recensione
+  nuovaRec = { rating: 5, commento: '' };
 
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
-    console.log("ID recuperato dalla rotta:", id);
-    
-    this.dataService.getDettaglioEvento(id).subscribe({
-      next: (res) => {
-        console.log("Dati evento ricevuti:", res);
-        this.evento.set(res);
-      },
-      error: (err) => {
-        console.error("Errore API dettagli:", err);
-        this.messaggio.set("Errore nel caricamento dell'evento.");
-      }
-    });
+    this.caricaDati(id);
+  }
+
+  caricaDati(id: number) {
+    this.dataService.getDettaglioEvento(id).subscribe(res => this.evento.set(res));
+    this.dataService.getRecensioni(id).subscribe(res => this.recensioni.set(res));
+  }
+
+  isPassato(): boolean {
+    if (!this.evento()) return false;
+    return new Date(this.evento().data_evento) < new Date();
   }
 
   prenota() {
     this.dataService.iscriviti(this.evento().id).subscribe({
-      next: (res) => this.messaggio.set("Iscrizione riuscita! Codice: " + res.codice),
-      error: () => this.messaggio.set("Posti esauriti o sei già iscritto.")
+      next: (res) => this.messaggio.set("Iscrizione riuscita!"),
+      error: () => this.messaggio.set("Errore iscrizione.")
+    });
+  }
+
+  inviaRecensione() {
+    this.dataService.inviaRecensione(this.evento().id, this.nuovaRec).subscribe(() => {
+      this.nuovaRec = { rating: 5, commento: '' };
+      this.caricaDati(this.evento().id);
+    });
+  }
+
+  segnala(id: number) {
+    this.dataService.segnalaRecensione(id).subscribe(() => {
+      alert("Recensione segnalata all'admin.");
+      this.caricaDati(this.evento().id);
     });
   }
 }
