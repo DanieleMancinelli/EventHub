@@ -25,6 +25,7 @@ class DatabaseWrapper:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
                 conn.commit()
+                return cursor.lastrowid
         finally:
             conn.close()
 
@@ -38,7 +39,6 @@ class DatabaseWrapper:
             conn.close()
 
     def create_tables(self):
-        # Tabella Eventi
         query_events = '''
         CREATE TABLE IF NOT EXISTS eventi (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,33 +54,33 @@ class DatabaseWrapper:
             organizzatore_id VARCHAR(100) NOT NULL
         )
         '''
-        # Tabella Iscrizioni (Biglietti)
-        query_registrations = '''
-        CREATE TABLE IF NOT EXISTS iscrizioni (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            evento_id INT,
-            utente_id VARCHAR(100),
-            codice_biglietto VARCHAR(255) UNIQUE,
-            FOREIGN KEY (evento_id) REFERENCES eventi(id) ON DELETE CASCADE
-        )
-        '''
-        # Tabella Recensioni
-        query_reviews = '''
-        CREATE TABLE IF NOT EXISTS recensioni (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            evento_id INT,
-            utente_id VARCHAR(100),
-            rating INT CHECK (rating BETWEEN 1 AND 5),
-            commento TEXT,
-            segnalata BOOLEAN DEFAULT FALSE,
-            FOREIGN KEY (evento_id) REFERENCES eventi(id) ON DELETE CASCADE
-        )
-        '''
         self.execute_query(query_events)
-        self.execute_query(query_registrations)
-        self.execute_query(query_reviews)
+        # (Altre tabelle verranno create qui man mano che servono)
 
-    # Metodo base per testare la connessione
-    def get_tutti_gli_eventi(self):
-        return self.fetch_query("SELECT id, titolo, data_evento, luogo, categoria, prezzo, posti_disponibili FROM eventi")
+    def aggiungi_evento(self, titolo, desc, data, luogo, cat, prezzo, posti, img, org_id):
+        query = '''
+        INSERT INTO eventi (titolo, descrizione, data_evento, luogo, categoria, prezzo, posti_totali, posti_disponibili, immagine_copertina, organizzatore_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        '''
+        return self.execute_query(query, (titolo, desc, data, luogo, cat, prezzo, posti, posti, img, org_id))
 
+    def get_eventi_filtrati(self, categoria=None, data=None, luogo=None, prezzo_max=None):
+        query = "SELECT id, titolo, descrizione, data_evento, luogo, categoria, prezzo, posti_disponibili FROM eventi WHERE 1=1"
+        params = []
+        if categoria:
+            query += " AND categoria = %s"
+            params.append(categoria)
+        if data:
+            query += " AND DATE(data_evento) = %s"
+            params.append(data)
+        if luogo:
+            query += " AND luogo LIKE %s"
+            params.append(f"%{luogo}%")
+        if prezzo_max:
+            query += " AND prezzo <= %s"
+            params.append(prezzo_max)
+        
+        return self.fetch_query(query, params)
+
+    def get_evento_by_id(self, evento_id):
+        return self.fetch_query("SELECT * FROM eventi WHERE id = %s", (evento_id,))
