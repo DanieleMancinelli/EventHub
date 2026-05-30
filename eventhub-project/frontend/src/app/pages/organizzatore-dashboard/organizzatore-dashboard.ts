@@ -12,62 +12,40 @@ import { DataService } from '../../services/data.service';
 })
 export class OrganizzatoreDashboardComponent implements OnInit {
   private dataService = inject(DataService);
-  
   mieiEventi = signal<any[]>([]);
   selectedFile: File | null = null;
+  editingId: number | null = null;
+  nuovoEvento = { titolo: '', descrizione: '', data: '', luogo: '', categoria: 'concerto', prezzo: 0, posti: 100 };
+
+  ngOnInit() { this.carica(); }
+  carica() { this.dataService.getMieiEventi().subscribe(res => this.mieiEventi.set(res)); }
+  onFileSelected(event: any) { this.selectedFile = event.target.files[0]; }
   
-  nuovoEvento = {
-    titolo: '',
-    descrizione: '',
-    data: '',
-    luogo: '',
-    categoria: 'concerto',
-    prezzo: 0,
-    posti: 100
-  };
-
-  ngOnInit() {
-    this.carica();
-  }
-
-  carica() {
-    this.dataService.getMieiEventi().subscribe({
-      next: (res) => this.mieiEventi.set(res),
-      error: (err) => console.error("Errore nel caricamento dei tuoi eventi:", err)
-    });
-  }
-
-  onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];
-  }
-
   salva() {
     const fd = new FormData();
-    fd.append('titolo', this.nuovoEvento.titolo);
-    fd.append('descrizione', this.nuovoEvento.descrizione);
-    fd.append('data', this.nuovoEvento.data);
-    fd.append('luogo', this.nuovoEvento.luogo);
-    fd.append('categoria', this.nuovoEvento.categoria);
-    fd.append('prezzo', this.nuovoEvento.prezzo.toString());
-    fd.append('posti', this.nuovoEvento.posti.toString());
-    
-    if (this.selectedFile) {
-      fd.append('immagine', this.selectedFile);
+    Object.entries(this.nuovoEvento).forEach(([k, v]) => fd.append(k, v.toString()));
+    if (this.selectedFile) fd.append('immagine', this.selectedFile);
+
+    if (this.editingId) {
+      this.dataService.aggiornaEvento(this.editingId, fd).subscribe(() => { alert("Aggiornato!"); this.reset(); });
+    } else {
+      this.dataService.creaEvento(fd).subscribe(() => { alert("Creato!"); this.reset(); });
     }
-
-    this.dataService.creaEvento(fd).subscribe(() => {
-      alert("Evento creato con successo!");
-      this.carica();
-    });
   }
 
-  scaricaCSV(id: number) {
-    this.dataService.esportaIscritti(id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `iscritti_evento_${id}.csv`;
-      a.click();
-    });
+  modifica(e: any) {
+    this.editingId = e.id;
+    this.nuovoEvento = { 
+      titolo: e.titolo, descrizione: e.descrizione, 
+      data: e.data_evento.slice(0, 16), // Formato per datetime-local
+      luogo: e.luogo, categoria: e.categoria || 'concerto', 
+      prezzo: e.prezzo, posti: e.posti_totali 
+    };
   }
+
+  reset() { this.editingId = null; this.nuovoEvento = { titolo: '', descrizione: '', data: '', luogo: '', categoria: 'concerto', prezzo: 0, posti: 100 }; this.carica(); }
+  elimina(id: number) { if (confirm("Eliminare?")) this.dataService.eliminaEvento(id).subscribe(() => this.carica()); }
+  scaricaCSV(id: number) { this.dataService.esportaIscritti(id).subscribe(blob => {
+    const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = `iscritti_${id}.csv`; a.click();
+  }); }
 }

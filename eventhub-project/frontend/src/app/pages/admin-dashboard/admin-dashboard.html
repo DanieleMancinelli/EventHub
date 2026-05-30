@@ -1,25 +1,50 @@
 <div style="padding: 20px;">
-  <h1>Pannello Moderazione Admin</h1>
-  <p>Qui puoi gestire le recensioni segnalate dagli utenti.</p>
+  <h1>Pannello Admin</h1>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <!-- RECENSIONI -->
+    <section>
+      <h3>🚩 Recensioni Segnalate</h3>
+      @for (s of segnalazioni(); track s.id) {
+        <div style="background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #fee2e2;">
+          <small style="color:#64748b; font-weight:bold;">Evento: {{ s.titolo }}</small>
+          <p style="margin:8px 0; font-style:italic;">"{{ s.commento }}"</p>
+          <div style="display:flex; gap:10px;">
+            <button (click)="gestisci(s.id, 'approva')" style="background:#10b981; font-size:0.75rem; flex:1;">Approva (Mantieni)</button>
+            <button (click)="gestisci(s.id, 'elimina')" style="background:#ef4444; font-size:0.75rem; flex:1;">Elimina</button>
+          </div>
+        </div>
+      } @empty {
+        <p style="color:#94a3b8;">Nessuna segnalazione da gestire.</p>
+      }
+    </section>
 
-  <div style="display: grid; gap: 15px; margin-top: 20px;">
-    @for (s of segnalazioni(); track s.id) {
-      <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #fee2e2; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <span style="color: #ef4444; font-weight: bold; font-size: 0.8rem;">🚩 SEGNALATA</span>
-          <h3 style="margin: 5px 0;">Evento: {{ s.titolo }}</h3>
-          <p style="margin: 0;">"{{ s.commento }}"</p>
-          <p style="font-size: 0.9rem; color: #64748b;">Rating: {{ s.rating }}/5 - Da utente: {{ s.utente_id }}</p>
+    <!-- UTENTI -->
+    <section>
+      <h3>👥 Gestione Utenti</h3>
+      @for (u of utenti(); track u.utente_id) {
+        <div style="background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="display:block;">{{ u.username }}</strong>
+            <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px;" 
+                  [style.background]="u.is_organizzatore ? '#dbeafe' : '#f1f5f9'"
+                  [style.color]="u.is_organizzatore ? '#1e40af' : '#64748b'">
+              {{ u.is_organizzatore ? 'ORGANIZZATORE' : 'UTENTE STANDARD' }}
+            </span>
+            @if (u.is_banned) {
+              <span style="font-size:0.7rem; background:#fee2e2; color:#ef4444; padding:2px 6px; border-radius:4px; margin-left:5px; font-weight:bold;">BANNATO</span>
+            }
+          </div>
+          <div style="display:flex; gap:5px;">
+            <button (click)="promuovi(u.utente_id)" style="background:#6366f1; font-size:0.7rem;">
+              {{ u.is_organizzatore ? 'De-promuovi' : 'Promuovi' }}
+            </button>
+            <button (click)="banna(u.utente_id)" [style.background]="u.is_banned ? '#10b981' : '#ef4444'" style="font-size:0.7rem;">
+              {{ u.is_banned ? 'Sblocca' : 'Banna' }}
+            </button>
+          </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-          <button (click)="gestisci(s.id, 'approva')" style="background: #10b981;">Approva (Mantieni)</button>
-          <button (click)="gestisci(s.id, 'elimina')" style="background: #ef4444;">Elimina Recensione</button>
-        </div>
-      </div>
-    } @empty {
-      <div style="text-align: center; padding: 50px; background: #f8fafc; border-radius: 12px; border: 2px dashed #e2e8f0;">
-        <p>Ottimo lavoro! Non ci sono recensioni da moderare.</p>
-      </div>
-    }
+      }
+    </section>
   </div>
 </div>

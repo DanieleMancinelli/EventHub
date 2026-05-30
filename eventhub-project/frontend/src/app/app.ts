@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { AuthService } from './core/auth.service';
 
@@ -9,6 +9,11 @@ import { AuthService } from './core/auth.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   auth = inject(AuthService);
+
+  ngOnInit() {
+    // Appena l'app parte, controlliamo se l'utente ha permessi speciali o è bannato
+    this.auth.syncExtraPerms();
+  }
 }

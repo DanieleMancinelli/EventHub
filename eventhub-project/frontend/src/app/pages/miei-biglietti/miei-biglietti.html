@@ -1,22 +1,37 @@
-<div style="padding: 20px;">
-  <h1>I miei Biglietti</h1>
+<div style="padding: 20px; max-width: 800px; margin: auto;">
+  <h1 style="margin-bottom: 30px;">I tuoi Biglietti</h1>
   
   @if (biglietti().length > 0) {
-    <div style="display: grid; gap: 15px;">
-      @for (b of biglietti(); track b.codice_biglietto) {
-        <div style="border: 2px dashed #aaa; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3>{{ b.titolo }}</h3>
-            <p>{{ b.data_evento | date:'short' }} - {{ b.luogo }}</p>
+    @for (b of biglietti(); track b.codice_biglietto) {
+      <div class="ticket">
+        <div class="ticket-main">
+          <small style="color: #94a3b8; font-weight: 800; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px;">Evento</small>
+          <h2 style="margin: 5px 0 15px 0; color: #1e293b;">{{ b.titolo }}</h2>
+          
+          <div style="display: flex; gap: 20px; color: #64748b; font-size: 0.9rem;">
+            <span>📅 {{ b.data_evento | date:'fullDate' }}</span>
+            <span>📍 {{ b.luogo }}</span>
           </div>
-          <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
-            <p>Codice Biglietto:</p>
-            <strong style="font-size: 1.2rem; color: #d32f2f;">{{ b.codice_biglietto }}</strong>
+
+          <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
+            <small style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.6rem;">Codice Univoco</small>
+            <div style="font-family: monospace; font-weight: bold; color: var(--primary);">{{ b.codice_biglietto }}</div>
           </div>
+
+          <!-- REQUISITO: Disiscrizione -->
+          <button (click)="annulla(b.codice_biglietto)" class="btn-cancel">Annulla Prenotazione</button>
         </div>
-      }
-    </div>
+
+        <div class="ticket-side">
+          <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + b.codice_biglietto">
+          <small style="color: #94a3b8; font-size: 0.6rem; text-transform: uppercase; font-weight: 700;">Scansiona all'ingresso</small>
+        </div>
+      </div>
+    }
   } @else {
-    <p>Non hai ancora acquistato nessun biglietto.</p>
+    <div style="text-align: center; padding: 60px; background: white; border-radius: 16px; border: 2px dashed var(--border);">
+      <p style="color: #64748b;">Non hai ancora prenotato nessun biglietto.</p>
+      <button routerLink="/" style="margin-top: 10px;">Esplora Eventi</button>
+    </div>
   }
 </div>

@@ -15,15 +15,9 @@ import { environment } from '../../../environments/environment';
 export class HomeComponent implements OnInit {
   private dataService = inject(DataService);
   apiUrl = environment.apiUrl;
-
   eventi = signal<any[]>([]);
-  filtri = { categoria: '', citta: '', prezzo_max: '' };
+  filtri = { categoria: '', citta: '', data: '', prezzo_max: '' };
 
-  ngOnInit() {
-    this.carica();
-  }
-
-  carica() {
-    this.dataService.getEventi(this.filtri).subscribe(res => this.eventi.set(res));
-  }
+  ngOnInit() { this.carica(); }
+  carica() { this.dataService.getEventi(this.filtri).subscribe(res => this.eventi.set(res)); }
 }

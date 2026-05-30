@@ -8,11 +8,8 @@ app = Flask(__name__)
 CORS(app)
 db = DatabaseWrapper()
 
-# --- PUBBLICO ---
 @app.route("/eventi", methods=["GET"])
-def lista_eventi(): 
-    cat = request.args.get("categoria"); dat = request.args.get("data"); luo = request.args.get("citta"); prz = request.args.get("prezzo_max")
-    return jsonify(db.get_eventi_filtrati(cat if cat else None, dat if dat else None, luo if luo else None, prz if prz else None))
+def lista_eventi(): return jsonify(db.get_eventi_filtrati(request.args.get("categoria"), request.args.get("data"), request.args.get("citta"), request.args.get("prezzo_max")))
 
 @app.route("/eventi/<int:id>", methods=["GET"])
 def dettaglio_evento(id):
@@ -29,14 +26,12 @@ def get_img(id):
 @app.route("/eventi/<int:id>/recensioni", methods=["GET"])
 def get_rec(id): return jsonify(db.get_recensioni_evento(id))
 
-# --- UTENTE ---
 @app.route("/eventi/<int:id>/recensione", methods=["POST"])
 @require_auth
 def post_rec(id):
     ev = db.get_evento_by_id(id)
     if ev[0]['data_evento'] > datetime.now(): return jsonify({"error": "No"}), 400
-    username = g.user.get("preferred_username") or g.user.get("given_name") or "Utente"
-    db.aggiungi_recensione(id, g.user.get("sub"), username, request.json['rating'], request.json['commento'])
+    db.aggiungi_recensione(id, g.user.get("sub"), g.user.get("preferred_username", "Utente"), request.json['rating'], request.json['commento'])
     return jsonify({"ok": True})
 
 @app.route("/eventi/<int:id>/iscrizione", methods=["POST"])
@@ -45,19 +40,30 @@ def isc(id):
     cod = db.iscrivi_utente(id, g.user.get("sub"))
     return jsonify({"codice": cod}) if cod else (jsonify({"error": "No"}), 400)
 
+# NUOVA ROTTA: Cancella un biglietto specifico tramite il suo codice
+@app.route("/utente/biglietti/<string:codice>", methods=["DELETE"])
+@require_auth
+def cancella_biglietto(codice):
+    db.disiscrivi_utente(codice, g.user.get("sub"))
+    return jsonify({"ok": True})
+
 @app.route("/utente/biglietti", methods=["GET"])
 @require_auth
 def get_tix(): return jsonify(db.get_biglietti_utente(g.user.get("sub")))
+
+@app.route("/utente/permessi", methods=["GET"])
+@require_auth
+def get_permessi():
+    res = db.fetch_query("SELECT is_banned, is_organizzatore FROM utenti WHERE utente_id = %s", (g.user["sub"],))
+    return jsonify(res[0] if res else {"is_banned": 0, "is_organizzatore": 0})
 
 @app.route("/recensioni/<int:id>/segnala", methods=["PUT"])
 @require_auth
 def seg_rec(id):
     rec = db.fetch_query("SELECT * FROM recensioni WHERE id = %s", (id,))
     if rec and rec[0]['utente_id'] == g.user.get("sub"): return jsonify({"error": "No"}), 400
-    db.segnala_recensione(id)
-    return jsonify({"ok": True})
+    db.segnala_recensione(id); return jsonify({"ok": True})
 
-# --- ORGANIZZATORE ---
 @app.route("/organizzatore/eventi", methods=["GET", "POST"])
 @require_auth
 @require_role("organizzatore")
@@ -68,6 +74,16 @@ def org_ev():
         return jsonify({"ok": True}), 201
     return jsonify(db.get_eventi_per_organizzatore(g.user.get("sub")))
 
+@app.route("/organizzatore/eventi/<int:id>", methods=["DELETE", "PUT"])
+@require_auth
+@require_role("organizzatore")
+def edit_ev(id):
+    if request.method == "DELETE": db.elimina_evento(id, g.user.get("sub"))
+    else:
+        d = request.form; img = request.files.get("immagine")
+        db.update_evento(id, d['titolo'], d['descrizione'], d['data'], d['luogo'], d['categoria'], d['prezzo'], d['posti'], img.read() if img else None, g.user.get("sub"))
+    return jsonify({"ok": True})
+
 @app.route("/organizzatore/eventi/<int:id>/csv", methods=["GET"])
 @require_auth
 @require_role("organizzatore")
@@ -76,26 +92,38 @@ def get_csv(id):
     for i in iscritti: csv_data += f"{i['utente_id']},{i['codice_biglietto']}\n"
     return Response(csv_data, mimetype="text/csv", headers={"Content-disposition": f"attachment; filename=iscritti_{id}.csv"})
 
-# --- ADMIN (CORRETTO) ---
 @app.route("/admin/recensioni", methods=["GET"])
 @require_auth
 @require_role("admin")
-def get_segnalate(): 
-    return jsonify(db.fetch_query("SELECT r.*, e.titolo FROM recensioni r JOIN eventi e ON r.evento_id = e.id WHERE r.segnalata = 1"))
+def get_segnalate(): return jsonify(db.fetch_query("SELECT r.*, e.titolo FROM recensioni r JOIN eventi e ON r.evento_id = e.id WHERE r.segnalata = 1"))
 
 @app.route("/admin/recensioni/<int:id>", methods=["DELETE"])
 @require_auth
 @require_role("admin")
-def del_rec(id):
+def del_rec_admin(id):
     db.execute_query("DELETE FROM recensioni WHERE id = %s", (id,))
     return jsonify({"ok": True})
 
 @app.route("/admin/recensioni/<int:id>/approva", methods=["PUT"])
 @require_auth
 @require_role("admin")
-def app_rec(id):
+def app_rec_admin(id):
     db.execute_query("UPDATE recensioni SET segnalata = 0 WHERE id = %s", (id,))
     return jsonify({"ok": True})
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+@app.route("/admin/utenti", methods=["GET"])
+@require_auth
+@require_role("admin")
+def get_users(): return jsonify(db.get_all_users())
+
+@app.route("/admin/utenti/<string:u_id>/ban", methods=["PUT"])
+@require_auth
+@require_role("admin")
+def ban_user(u_id): db.toggle_ban(u_id); return jsonify({"ok": True})
+
+@app.route("/admin/utenti/<string:u_id>/promuovi", methods=["PUT"])
+@require_auth
+@require_role("admin")
+def promote_user(u_id): db.toggle_organizzatore(u_id); return jsonify({"ok": True})
+
+if __name__ == "__main__": app.run(host='0.0.0.0', port=5000, debug=True)
