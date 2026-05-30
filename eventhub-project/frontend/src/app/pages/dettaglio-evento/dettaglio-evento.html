@@ -3,37 +3,72 @@
     <button routerLink="/" style="margin-bottom: 15px; background: #64748b; padding: 8px 15px; font-size: 0.8rem;">← Home</button>
     
     <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px;">
+      
+      <!-- Immagine Intera -->
       <div style="background: #f1f5f9; text-align: center;">
-        <img [src]="apiUrl + '/eventi/' + evento().id + '/immagine'" style="max-width: 100%; height: auto; max-height: 350px; object-fit: contain;">
+        <img [src]="apiUrl + '/eventi/' + evento().id + '/immagine'" 
+             style="max-width: 100%; height: auto; max-height: 350px; object-fit: contain; display: block; margin: auto;">
       </div>
+      
       <div style="padding: 25px;">
-        <h1>{{ evento().titolo }}</h1>
-        <p>{{ evento().descrizione }}</p>
+        <!-- Categoria -->
+        <span style="font-size: 0.7rem; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-weight: bold; text-transform: uppercase;">
+          {{ evento().categoria }}
+        </span>
         
-        <!-- LOGICA PRENOTAZIONE: Scompare se passato -->
-        @if (!isPassato()) {
-          <button (click)="prenota()" [disabled]="evento().posti_disponibili <= 0" style="width: 100%; padding: 12px; background: #2563eb;">
-            {{ evento().posti_disponibili > 0 ? 'Prenota ora' : 'Posti Esauriti' }}
-          </button>
-        } @else {
-          <div style="padding: 10px; background: #fee2e2; color: #b91c1c; text-align: center; border-radius: 8px; font-weight: bold;">
-            EVENTO TERMINATO
+        <h1 style="margin-top: 10px; font-size: 2rem; color: #1e293b; margin-bottom: 10px;">{{ evento().titolo }}</h1>
+        <p style="font-size: 1rem; line-height: 1.5; color: #475569; margin-bottom: 25px;">{{ evento().descrizione }}</p>
+        
+        <!-- GRIGLIA INFORMAZIONI RIPRISTINATA -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.9rem; margin-bottom: 25px;">
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Luogo</p>
+            <p style="margin: 3px 0 0 0; font-weight: 600;">📍 {{ evento().luogo }}</p>
           </div>
-        }
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Data e Ora</p>
+            <p style="margin: 3px 0 0 0; font-weight: 600;">📅 {{ evento().data_evento | date:'medium' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Disponibilità</p>
+            <p style="margin: 3px 0 0 0; font-weight: 600;">🎟️ {{ evento().posti_disponibili }} rimasti</p>
+          </div>
+          <div>
+            <p style="margin: 0; color: #64748b; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Prezzo</p>
+            <p style="margin: 3px 0 0 0; font-weight: 800; font-size: 1.1rem; color: #1e293b;">{{ evento().prezzo }}€</p>
+          </div>
+        </div>
 
-        @if (!auth.isLoggedIn()) {
-          <p style="text-align: center; font-size: 0.9rem; margin-top: 15px;">
-            <a (click)="auth.login()" style="color: blue; cursor: pointer;">Accedi</a> o 
-            <a (click)="auth.register()" style="color: blue; cursor: pointer;">Registrati</a> per partecipare.
-          </p>
-        }
-        @if (messaggio()) { <p style="text-align: center; color: green; font-weight: bold;">{{ messaggio() }}</p> }
+        <!-- Tasto Prenotazione -->
+        <div style="margin-top: 10px;">
+          @if (!isPassato()) {
+            <button (click)="prenota()" [disabled]="evento().posti_disponibili <= 0" style="width: 100%; padding: 15px; font-size: 1.1rem; background: #2563eb;">
+              {{ evento().posti_disponibili > 0 ? '🚀 Prenota ora' : 'Posti Esauriti' }}
+            </button>
+          } @else {
+            <div style="padding: 15px; background: #fee2e2; color: #b91c1c; text-align: center; border-radius: 8px; font-weight: bold; border: 1px solid #fecaca;">
+              ⚠️ EVENTO TERMINATO
+            </div>
+          }
+
+          @if (!auth.isLoggedIn()) {
+            <p style="text-align: center; font-size: 0.85rem; margin-top: 15px; color: #64748b;">
+              <a (click)="auth.login()" style="color: #2563eb; cursor: pointer; text-decoration: underline;">Accedi</a> o 
+              <a (click)="auth.register()" style="color: #2563eb; cursor: pointer; text-decoration: underline;">Registrati</a> per prenotare.
+            </p>
+          }
+          @if (messaggio()) { 
+            <div style="margin-top: 15px; padding: 10px; background: #ecfdf5; border: 1px solid #10b981; color: #065f46; text-align: center; border-radius: 8px; font-weight: bold;">
+              {{ messaggio() }}
+            </div>
+          }
+        </div>
       </div>
     </div>
 
-    <!-- SEZIONE RECENSIONI -->
+    <!-- Sezione Recensioni (rimane com'era) -->
     <div style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0;">
-      <h3>Recensioni</h3>
+      <h3 style="margin-top: 0;">Recensioni</h3>
       @for (r of recensioni(); track r.id) {
         <div style="border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
@@ -43,13 +78,15 @@
             </div>
             <p style="margin: 8px 0; color: #475569;">{{ r.commento }}</p>
           </div>
-          @if (auth.isLoggedIn()) {
-            <button (click)="segnala(r.id)" style="background: #fee2e2; color: #ef4444; font-size: 0.65rem; padding: 4px 8px;">🚩 SEGNALA</button>
+          @if (auth.isLoggedIn() && r.utente_id !== auth.getUserId()) {
+            <button (click)="segnala(r.id)" [disabled]="r.segnalata" 
+                    style="background: #fee2e2; color: #ef4444; font-size: 0.65rem; padding: 4px 8px; border: 1px solid #fecaca;">
+              {{ r.segnalata ? 'SEGNALATA' : '🚩 SEGNALA' }}
+            </button>
           }
         </div>
-      } @empty { <p style="color: #64748b;">Nessuna recensione ancora.</p> }
+      } @empty { <p style="color: #64748b; font-style: italic;">Nessuna recensione ancora per questo evento.</p> }
 
-      <!-- FORM RECENSIONE -->
       @if (auth.isLoggedIn() && isPassato()) {
         <div style="margin-top: 30px; border-top: 2px solid #f1f5f9; padding-top: 20px;">
           <h4 style="margin-bottom: 15px;">Lascia la tua opinione</h4>
@@ -61,8 +98,8 @@
               <option [value]="2">⭐⭐ Scarso</option>
               <option [value]="1">⭐ Pessimo</option>
             </select>
-            <textarea [(ngModel)]="nuovaRec.commento" placeholder="Com'è stato l'evento?" style="height: 80px;"></textarea>
-            <button (click)="inviaRecensione()" style="background: #10b981;">Invia Recensione</button>
+            <textarea [(ngModel)]="nuovaRec.commento" placeholder="Com'è stato l'evento?" style="height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+            <button (click)="inviaRecensione()" style="background: #10b981; font-weight: bold;">Invia Recensione</button>
           </div>
         </div>
       }
